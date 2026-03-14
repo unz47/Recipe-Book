@@ -1,0 +1,18 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# expo / react-native
+mobile/.expo/
+mobile/dist/
+
+# env files
+.env*.local
+
+# misc
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
