@@ -30,6 +30,10 @@ const RecipeSchema = z.object({
     })
   ),
   tips: z.array(z.string()).optional(),
+  tags: z
+    .array(z.string())
+    .describe("料理のカテゴリやタグ（例: 和食, 煮物, 時短）")
+    .optional(),
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
 });
 
@@ -90,6 +94,7 @@ export class AiRecipeExtractor implements RecipeExtractor {
         ingredients: object.ingredients,
         steps: object.steps,
         tips: object.tips,
+        tags: object.tags,
         difficulty: object.difficulty,
         sourceUrl: "",
         thumbnailUrl: undefined,

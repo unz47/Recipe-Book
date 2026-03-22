@@ -22,6 +22,7 @@ export type Recipe = {
   ingredients: Ingredient[];
   steps: Step[];
   tips?: string[];
+  tags?: string[];
   difficulty?: "easy" | "medium" | "hard";
   sourceUrl: string;
   thumbnailUrl?: string;

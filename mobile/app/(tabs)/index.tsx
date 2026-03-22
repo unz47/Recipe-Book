@@ -7,6 +7,7 @@ import { CookingPot } from "lucide-react-native";
 import type { Recipe } from "@/domain/entities/recipe";
 import { UrlInputForm } from "@/components/features/video/url-input-form";
 import { RecipeCard } from "@/components/features/recipe/recipe-card";
+import { FeedbackMenu } from "@/components/features/feedback/feedback-menu";
 import { useRecipes } from "@/hooks/use-recipes";
 import { useExtractRecipe } from "@/hooks/use-extract-recipe";
 
@@ -47,32 +48,35 @@ export default function HomeScreen() {
         }}
       >
         {/* Hero */}
-        <View style={{ gap: 8 }}>
-          <View
-            style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-          >
-            <CookingPot size={28} color="#E86A30" />
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <View style={{ gap: 8, flex: 1 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
+              <CookingPot size={28} color="#E86A30" />
+              <Text
+                style={{
+                  fontSize: 24,
+                  fontWeight: "700",
+                  color: "#1F1E1C",
+                  fontFamily: "Inter",
+                }}
+              >
+                Recipi Book
+              </Text>
+            </View>
             <Text
               style={{
-                fontSize: 24,
-                fontWeight: "700",
-                color: "#1F1E1C",
+                fontSize: 15,
+                fontWeight: "600",
+                color: "#8A8680",
                 fontFamily: "Inter",
               }}
             >
-              Recipi Book
+              料理動画からレシピを抽出
             </Text>
           </View>
-          <Text
-            style={{
-              fontSize: 15,
-              fontWeight: "600",
-              color: "#8A8680",
-              fontFamily: "Inter",
-            }}
-          >
-            料理動画からレシピを抽出
-          </Text>
+          <FeedbackMenu />
         </View>
 
         {/* URL Input */}

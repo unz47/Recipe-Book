@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ExpandableText } from "@/components/ui/expandable-text";
 
 type RecipeDetailProps = {
   recipe: RecipeDto;
@@ -25,11 +26,18 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
       <div className="space-y-3">
         <h2 className="text-3xl font-bold leading-tight">{recipe.title}</h2>
         {recipe.description && (
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {recipe.description}
-          </p>
+          <ExpandableText
+            text={recipe.description}
+            lines={3}
+            className="text-sm leading-relaxed text-muted-foreground"
+          />
         )}
         <div className="flex flex-wrap gap-2">
+          {recipe.tags?.map((tag) => (
+            <Badge key={tag} variant="outline">
+              {tag}
+            </Badge>
+          ))}
           {recipe.totalTime && (
             <Badge variant="outline">{recipe.totalTime}</Badge>
           )}

@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import type { RecipeDto } from "@/application/dto/extract-recipe-dto";
 
+import { FeedbackMenu } from "@/components/features/feedback/feedback-menu";
 import { RecipeDetail } from "@/components/features/recipe/recipe-detail";
 import { UrlInputForm } from "@/components/features/video/url-input-form";
 
@@ -13,7 +14,11 @@ export default function Home() {
   const [recipe, setRecipe] = useState<RecipeDto | null>(null);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col items-center px-4 py-12 sm:px-6">
+    <main className="relative mx-auto flex min-h-screen max-w-4xl flex-col items-center px-4 py-12 sm:px-6">
+      <div className="absolute top-3 right-2">
+        <FeedbackMenu />
+      </div>
+
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold leading-tight">Recipi Book</h1>
         <p className="mt-2 text-sm text-muted-foreground">

@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Tabs } from "expo-router";
-import { CommonActions } from "@react-navigation/native";
+import { CommonActions, StackActions } from "@react-navigation/native";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { House, BookOpen, ShoppingCart } from "lucide-react-native";
 
@@ -54,12 +54,13 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
             });
             if (!event.defaultPrevented) {
               if (focused) {
-                navigation.dispatch(
-                  CommonActions.navigate({
-                    name: route.name,
-                    params: { screen: undefined },
-                  })
-                );
+                const tabState = state.routes[index].state;
+                if (tabState && tabState.index && tabState.index > 0) {
+                  navigation.dispatch({
+                    ...StackActions.popToTop(),
+                    target: tabState.key,
+                  });
+                }
               } else {
                 navigation.navigate(route.name);
               }

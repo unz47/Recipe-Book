@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { useState, useCallback } from "react";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { Timer, Lightbulb, ShoppingCart } from "lucide-react-native";
 
 import type { Recipe } from "@/domain/entities/recipe";
@@ -22,6 +22,17 @@ export function RecipeDetailView({
   const baseServings = parseInt(recipe.servings ?? "2", 10) || 2;
   const [servings, setServings] = useState(baseServings);
   const servingsRatio = servings / baseServings;
+  const [descExpanded, setDescExpanded] = useState(false);
+  const [descClamped, setDescClamped] = useState(false);
+
+  const onDescTextLayout = useCallback(
+    (e: { nativeEvent: { lines: unknown[] } }) => {
+      if (!descExpanded && e.nativeEvent.lines.length >= 3) {
+        setDescClamped(true);
+      }
+    },
+    [descExpanded]
+  );
 
   return (
     <ScrollView
@@ -46,6 +57,13 @@ export function RecipeDetailView({
           {recipe.title}
         </Text>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+          {recipe.category && (
+            <Badge
+              label={recipe.category}
+              backgroundColor="#F0EDE8"
+              textColor="#6B6862"
+            />
+          )}
           {recipe.totalTime && (
             <Badge
               label={recipe.totalTime}
@@ -62,6 +80,39 @@ export function RecipeDetailView({
           )}
         </View>
       </View>
+
+      {/* Description */}
+      {recipe.description ? (
+        <View>
+          <Text
+            numberOfLines={descExpanded ? undefined : 3}
+            onTextLayout={onDescTextLayout}
+            style={{
+              fontSize: 14,
+              lineHeight: 22.4,
+              color: "#6B6862",
+              fontFamily: "Inter",
+            }}
+          >
+            {recipe.description}
+          </Text>
+          {descClamped && (
+            <Pressable onPress={() => setDescExpanded((v) => !v)}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "500",
+                  color: "#E86A30",
+                  marginTop: 4,
+                  fontFamily: "Inter",
+                }}
+              >
+                {descExpanded ? "閉じる" : "もっと見る"}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      ) : null}
 
       {/* Servings */}
       <ServingsAdjuster

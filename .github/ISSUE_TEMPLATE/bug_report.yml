@@ -1,0 +1,89 @@
+name: 不具合報告
+description: アプリの不具合やバグを報告する
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        不具合の報告ありがとうございます。以下の項目をできるだけ詳しく記入してください。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 不具合の概要
+      description: どのような不具合が発生しましたか？
+      placeholder: 例）レシピ保存ボタンを押しても保存されない
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: 不具合を再現する手順を教えてください。
+      placeholder: |
+        1. 「...」ページを開く
+        2. 「...」を入力する
+        3. 「...」ボタンをクリックする
+        4. エラーが発生する
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動作
+      description: 本来どのように動作すべきですか？
+      placeholder: 例）レシピが保存され、一覧ページに表示される
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動作
+      description: 実際にはどのように動作しましたか？
+      placeholder: 例）保存ボタンを押しても反応がなく、レシピが保存されない
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: スクリーンショット
+      description: 不具合の状況がわかるスクリーンショットがあれば添付してください。
+    validations:
+      required: false
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: ブラウザ
+      options:
+        - Chrome
+        - Safari
+        - Firefox
+        - Edge
+        - その他
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: デバイス
+      options:
+        - PC
+        - スマートフォン
+        - タブレット
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 補足情報
+      description: その他、参考になりそうな情報があれば記入してください。
+    validations:
+      required: false
