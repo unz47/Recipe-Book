@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, StyleSheet } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CookingPot } from "lucide-react-native";
@@ -10,10 +10,12 @@ import { RecipeCard } from "@/components/features/recipe/recipe-card";
 import { FeedbackMenu } from "@/components/features/feedback/feedback-menu";
 import { UserMenu } from "@/components/features/auth/user-menu";
 import { LoginButton } from "@/components/features/auth/login-button";
+import { UsageInfoCard } from "@/components/features/usage/usage-info-card";
 import { useRecipes } from "@/hooks/use-recipes";
 import { useExtractRecipe } from "@/hooks/use-extract-recipe";
 import { useAuth } from "@/hooks/use-auth";
 import { useUsage } from "@/hooks/use-usage";
+import { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING } from "@/src/lib/constants";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -24,9 +26,20 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      console.log("[HomeScreen] Focus effect triggered, refreshing data...");
-      void refresh();
-      void refreshUsage();
+      if (__DEV__) {
+        console.log("[HomeScreen] Focus effect triggered, refreshing data...");
+      }
+      const refreshData = async () => {
+        try {
+          await Promise.all([refresh(), refreshUsage()]);
+        } catch (error) {
+          if (__DEV__) {
+            console.error("[HomeScreen] Failed to refresh data:", error);
+          }
+          // エラーは静かに失敗させる（各hookで個別にハンドリング）
+        }
+      };
+      void refreshData();
     }, [refresh, refreshUsage])
   );
 
@@ -34,39 +47,27 @@ export default function HomeScreen() {
 
   // 認証状態のロード中は中央にローディング表示
   if (authLoading) {
-    console.log("[HomeScreen] Showing loading screen (authLoading=true)");
+    if (__DEV__) {
+      console.log("[HomeScreen] Showing loading screen (authLoading=true)");
+    }
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#FAFAF8" }}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 16,
-          }}
-        >
-          <ActivityIndicator size="large" color="#E86A30" />
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: "500",
-              color: "#8A8680",
-              fontFamily: "Inter",
-            }}
-          >
-            読み込み中...
-          </Text>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary.DEFAULT} />
+          <Text style={styles.loadingText}>読み込み中...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  console.log("[HomeScreen] Rendering main content", {
-    isAuthenticated,
-    hasUser: !!user,
-    hasUsage: !!usage,
-    recipesCount: recipes.length,
-  });
+  if (__DEV__) {
+    console.log("[HomeScreen] Rendering main content", {
+      isAuthenticated,
+      hasUser: !!user,
+      hasUsage: !!usage,
+      recipesCount: recipes.length,
+    });
+  }
 
   const handleExtract = async (url: string) => {
     const dto = await extractState.extract(url);
@@ -82,46 +83,21 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FAFAF8" }}>
+    <SafeAreaView style={styles.container}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{
-          paddingHorizontal: 20,
-          paddingTop: 24,
-          paddingBottom: 100,
-          gap: 32,
-        }}
+        contentContainerStyle={styles.scrollContent}
       >
         {/* Hero */}
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <View style={{ gap: 8, flex: 1 }}>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <CookingPot size={28} color="#E86A30" />
-              <Text
-                style={{
-                  fontSize: 24,
-                  fontWeight: "700",
-                  color: "#1F1E1C",
-                  fontFamily: "Inter",
-                }}
-              >
-                Recipi Book
-              </Text>
+        <View style={styles.heroContainer}>
+          <View style={styles.heroLeft}>
+            <View style={styles.titleRow}>
+              <CookingPot size={28} color={COLORS.primary.DEFAULT} />
+              <Text style={styles.title}>Recipi Book</Text>
             </View>
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: "600",
-                color: "#8A8680",
-                fontFamily: "Inter",
-              }}
-            >
-              料理動画からレシピを抽出
-            </Text>
+            <Text style={styles.subtitle}>料理動画からレシピを抽出</Text>
           </View>
-          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+          <View style={styles.heroRight}>
             {isAuthenticated && user ? (
               <UserMenu
                 userEmail={user.email ?? ""}
@@ -136,65 +112,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Usage Info */}
-        {isAuthenticated && usage && (
-          <View
-            style={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: 12,
-              padding: 16,
-              borderWidth: 1,
-              borderColor: "#E8E6E1",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: "600",
-                color: "#8A8680",
-                fontFamily: "Inter",
-                marginBottom: 4,
-              }}
-            >
-              今月の残り抽出回数
-            </Text>
-            <Text
-              style={{
-                fontSize: 24,
-                fontWeight: "700",
-                color: usage.remaining > 10 ? "#E86A30" : "#EF4444",
-                fontFamily: "Inter",
-              }}
-            >
-              {usage.remaining} / {usage.limit}回
-            </Text>
-            {usage.remaining <= 10 && usage.remaining > 0 && (
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: "500",
-                  color: "#EF4444",
-                  fontFamily: "Inter",
-                  marginTop: 4,
-                }}
-              >
-                残り回数が少なくなっています
-              </Text>
-            )}
-            {usage.remaining === 0 && (
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: "500",
-                  color: "#EF4444",
-                  fontFamily: "Inter",
-                  marginTop: 4,
-                }}
-              >
-                今月の上限に達しました。来月また利用できます。
-              </Text>
-            )}
-          </View>
-        )}
+        {isAuthenticated && usage && <UsageInfoCard usage={usage} />}
 
         {/* URL Input */}
         <UrlInputForm
@@ -207,31 +125,11 @@ export default function HomeScreen() {
 
         {/* Recent Recipes */}
         {recentRecipes.length > 0 && (
-          <View style={{ gap: 16 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
+          <View style={styles.recipesSection}>
+            <View style={styles.recipesSectionHeader}>
+              <Text style={styles.sectionTitle}>最近のレシピ</Text>
               <Text
-                style={{
-                  fontSize: 17,
-                  fontWeight: "700",
-                  color: "#1F1E1C",
-                  fontFamily: "Inter",
-                }}
-              >
-                最近のレシピ
-              </Text>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: "500",
-                  color: "#E86A30",
-                  fontFamily: "Inter",
-                }}
+                style={styles.viewAllLink}
                 onPress={() => router.push("/(tabs)/recipes")}
               >
                 すべて見る
@@ -240,16 +138,14 @@ export default function HomeScreen() {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 12 }}
+              contentContainerStyle={styles.recipesScrollContent}
             >
               {recentRecipes.map((item, index) => (
                 <RecipeCard
                   key={item.id}
                   recipe={item}
                   index={index}
-                  onPress={() =>
-                    router.push(`/(tabs)/recipes/${item.id}`)
-                  }
+                  onPress={() => router.push(`/(tabs)/recipes/${item.id}`)}
                 />
               ))}
             </ScrollView>
@@ -259,3 +155,82 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.neutral[50],
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: SPACING.LG,
+  },
+  loadingText: {
+    fontSize: SPACING.LG,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+    color: COLORS.neutral[500],
+    fontFamily: "Inter",
+  },
+  scrollContent: {
+    paddingHorizontal: SPACING.XL,
+    paddingTop: SPACING.XXL,
+    paddingBottom: 100,
+    gap: SPACING.XXXL,
+  },
+  heroContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  heroLeft: {
+    gap: SPACING.SM,
+    flex: 1,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.SM,
+  },
+  title: {
+    fontSize: FONT_SIZE.XL,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.neutral[900],
+    fontFamily: "Inter",
+  },
+  subtitle: {
+    fontSize: FONT_SIZE.MD,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: COLORS.neutral[500],
+    fontFamily: "Inter",
+  },
+  heroRight: {
+    flexDirection: "row",
+    gap: SPACING.SM,
+    alignItems: "center",
+  },
+  recipesSection: {
+    gap: SPACING.LG,
+  },
+  recipesSectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  sectionTitle: {
+    fontSize: FONT_SIZE.LG,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.neutral[900],
+    fontFamily: "Inter",
+  },
+  viewAllLink: {
+    fontSize: FONT_SIZE.SM,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+    color: COLORS.primary.DEFAULT,
+    fontFamily: "Inter",
+  },
+  recipesScrollContent: {
+    gap: SPACING.MD,
+  },
+});
