@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import type { RecipeDto } from "@/application/dto/extract-recipe-dto";
 
+import { UserMenu } from "@/components/auth/user-menu";
 import { FeedbackMenu } from "@/components/features/feedback/feedback-menu";
 import { RecipeDetail } from "@/components/features/recipe/recipe-detail";
 import { UrlInputForm } from "@/components/features/video/url-input-form";
@@ -15,7 +16,8 @@ export default function Home() {
 
   return (
     <main className="relative mx-auto flex min-h-screen max-w-4xl flex-col items-center px-4 py-12 sm:px-6">
-      <div className="absolute top-3 right-2">
+      <div className="absolute top-3 right-2 flex items-center gap-2">
+        <UserMenu />
         <FeedbackMenu />
       </div>
 

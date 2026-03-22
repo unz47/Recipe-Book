@@ -11,6 +11,7 @@ mobile/dist/
 
 # env files
 .env*.local
+mobile/.env
 
 # misc
 .DS_Store

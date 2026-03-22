@@ -22,10 +22,10 @@ function toErrorMessage(error: unknown): string {
     return "動画が見つかりませんでした。URLを確認してください。";
   }
   if (error instanceof TranscriptNotAvailableError) {
-    return "この動画には字幕がありません。字幕付きの動画をお試しください。";
+    return "この動画には字幕がありません。字幕付きの動画をお試しください。\n\n💡 ヒント: 字幕がある動画を選ぶか、動画の説明欄にレシピが詳しく書かれている動画をお試しください。";
   }
   if (error instanceof ExtractionFailedError) {
-    return "レシピの抽出に失敗しました。もう一度お試しください。";
+    return "レシピの抽出に失敗しました。もう一度お試しください。\n\n💡 ヒント: レシピ情報が明確に説明されている動画を選ぶと、抽出の成功率が上がります。";
   }
   return "予期しないエラーが発生しました。もう一度お試しください。";
 }

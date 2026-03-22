@@ -40,7 +40,7 @@ export const COLORS = {
 } as const;
 
 export const API_BASE_URL = __DEV__
-  ? "http://localhost:3000"
+  ? process.env.EXPO_PUBLIC_API_URL || "http://localhost:3002"
   : "https://your-production-url.com";
 
 export const DIFFICULTY_LABELS = {

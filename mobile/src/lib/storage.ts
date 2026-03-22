@@ -32,3 +32,8 @@ export async function getStoredShoppingList<T>(): Promise<T[]> {
 export async function setStoredShoppingList<T>(list: T[]): Promise<void> {
   await AsyncStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(list));
 }
+
+export async function clearStorage(): Promise<void> {
+  await AsyncStorage.removeItem(RECIPES_KEY);
+  await AsyncStorage.removeItem(SHOPPING_LIST_KEY);
+}

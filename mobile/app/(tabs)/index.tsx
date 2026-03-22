@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CookingPot } from "lucide-react-native";
@@ -8,21 +8,65 @@ import type { Recipe } from "@/domain/entities/recipe";
 import { UrlInputForm } from "@/components/features/video/url-input-form";
 import { RecipeCard } from "@/components/features/recipe/recipe-card";
 import { FeedbackMenu } from "@/components/features/feedback/feedback-menu";
+import { UserMenu } from "@/components/features/auth/user-menu";
+import { LoginButton } from "@/components/features/auth/login-button";
 import { useRecipes } from "@/hooks/use-recipes";
 import { useExtractRecipe } from "@/hooks/use-extract-recipe";
+import { useAuth } from "@/hooks/use-auth";
+import { useUsage } from "@/hooks/use-usage";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { recipes, save, refresh } = useRecipes();
   const extractState = useExtractRecipe();
+  const { user, isAuthenticated, isLoading: authLoading, signOut } = useAuth();
+  const { usage, refresh: refreshUsage } = useUsage();
 
   useFocusEffect(
     useCallback(() => {
+      console.log("[HomeScreen] Focus effect triggered, refreshing data...");
       void refresh();
-    }, [refresh])
+      void refreshUsage();
+    }, [refresh, refreshUsage])
   );
 
   const recentRecipes = recipes.slice(0, 5);
+
+  // 認証状態のロード中は中央にローディング表示
+  if (authLoading) {
+    console.log("[HomeScreen] Showing loading screen (authLoading=true)");
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#FAFAF8" }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 16,
+          }}
+        >
+          <ActivityIndicator size="large" color="#E86A30" />
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "500",
+              color: "#8A8680",
+              fontFamily: "Inter",
+            }}
+          >
+            読み込み中...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  console.log("[HomeScreen] Rendering main content", {
+    isAuthenticated,
+    hasUser: !!user,
+    hasUsage: !!usage,
+    recipesCount: recipes.length,
+  });
 
   const handleExtract = async (url: string) => {
     const dto = await extractState.extract(url);
@@ -32,6 +76,7 @@ export default function HomeScreen() {
         createdAt: dto.createdAt ?? new Date().toISOString(),
       };
       await save(recipe);
+      await refreshUsage(); // 抽出成功後に使用状況を更新
       router.push(`/(tabs)/recipes/${recipe.id}`);
     }
   };
@@ -76,8 +121,80 @@ export default function HomeScreen() {
               料理動画からレシピを抽出
             </Text>
           </View>
-          <FeedbackMenu />
+          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+            {isAuthenticated && user ? (
+              <UserMenu
+                userEmail={user.email ?? ""}
+                avatarUrl={user.user_metadata?.avatar_url || user.user_metadata?.picture}
+                onSignOut={signOut}
+              />
+            ) : (
+              <LoginButton />
+            )}
+            <FeedbackMenu />
+          </View>
         </View>
+
+        {/* Usage Info */}
+        {isAuthenticated && usage && (
+          <View
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: 12,
+              padding: 16,
+              borderWidth: 1,
+              borderColor: "#E8E6E1",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: "600",
+                color: "#8A8680",
+                fontFamily: "Inter",
+                marginBottom: 4,
+              }}
+            >
+              今月の残り抽出回数
+            </Text>
+            <Text
+              style={{
+                fontSize: 24,
+                fontWeight: "700",
+                color: usage.remaining > 10 ? "#E86A30" : "#EF4444",
+                fontFamily: "Inter",
+              }}
+            >
+              {usage.remaining} / {usage.limit}回
+            </Text>
+            {usage.remaining <= 10 && usage.remaining > 0 && (
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "500",
+                  color: "#EF4444",
+                  fontFamily: "Inter",
+                  marginTop: 4,
+                }}
+              >
+                残り回数が少なくなっています
+              </Text>
+            )}
+            {usage.remaining === 0 && (
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: "500",
+                  color: "#EF4444",
+                  fontFamily: "Inter",
+                  marginTop: 4,
+                }}
+              >
+                今月の上限に達しました。来月また利用できます。
+              </Text>
+            )}
+          </View>
+        )}
 
         {/* URL Input */}
         <UrlInputForm
