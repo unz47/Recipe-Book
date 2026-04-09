@@ -1,42 +1,42 @@
-import type { Recipe } from "@/domain/entities/recipe";
-import type { RecipeExtractor } from "@/domain/repositories/recipe-extractor";
-import type { TranscriptRepository } from "@/domain/repositories/transcript-repository";
-import { createYouTubeUrl } from "@/domain/value-objects/youtube-url";
+import type { ActionResult, RecipeDto } from "../dto/extract-recipe-dto";
+import { supabase } from "@/lib/supabase";
 
-export type ExtractRecipeDeps = {
-  transcriptRepository: TranscriptRepository;
-  recipeExtractor: RecipeExtractor;
-};
+export async function extractRecipeFromApi(
+  url: string
+): Promise<ActionResult<RecipeDto>> {
+  try {
+    // 認証トークンを取得
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-export async function extractRecipe(
-  url: string,
-  deps: ExtractRecipeDeps
-): Promise<Recipe> {
-  const youtubeUrl = createYouTubeUrl(url);
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
 
-  let transcript = await deps.transcriptRepository.fetchTranscript(
-    youtubeUrl.videoId,
-    "ja"
-  );
-
-  if (!transcript.fullText) {
-    try {
-      const enTranscript = await deps.transcriptRepository.fetchTranscript(
-        youtubeUrl.videoId,
-        "en"
-      );
-      if (enTranscript.fullText) {
-        transcript = enTranscript;
-      }
-    } catch {
-      // en 取得失敗は無視、ja の結果（description のみ）で進む
+    if (session?.access_token) {
+      headers.Authorization = `Bearer ${session.access_token}`;
     }
+
+    const response = await supabase.functions.invoke("extract-recipe", {
+      body: { url },
+      headers,
+    });
+
+    if (response.error) {
+      return {
+        success: false,
+        error:
+          response.error.message ||
+          "サーバーとの通信に失敗しました。もう一度お試しください。",
+      };
+    }
+
+    return response.data as ActionResult<RecipeDto>;
+  } catch {
+    return {
+      success: false,
+      error: "サーバーに接続できません。もう一度お試しください。",
+    };
   }
-
-  const recipe = await deps.recipeExtractor.extract(transcript);
-
-  return {
-    ...recipe,
-    sourceUrl: youtubeUrl.url,
-  };
 }

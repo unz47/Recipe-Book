@@ -22,11 +22,12 @@ export type Recipe = {
   ingredients: Ingredient[];
   steps: Step[];
   tips?: string[];
-  tags?: string[];
   difficulty?: "easy" | "medium" | "hard";
   sourceUrl: string;
   thumbnailUrl?: string;
   channelName?: string;
   language: "ja" | "en";
-  createdAt: Date;
+  createdAt: string;
+  category?: string;
+  isFavorite?: boolean;
 };

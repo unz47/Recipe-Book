@@ -22,7 +22,6 @@ export type RecipeDto = {
   ingredients: IngredientDto[];
   steps: StepDto[];
   tips?: string[];
-  tags?: string[];
   difficulty?: "easy" | "medium" | "hard";
   sourceUrl: string;
   thumbnailUrl?: string;
