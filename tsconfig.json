@@ -11,5 +11,11 @@
     "**/*.ts",
     "**/*.tsx",
     "nativewind-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "supabase/functions",
+    "lambda",
+    "dist"
   ]
 }

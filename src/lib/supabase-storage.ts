@@ -34,9 +34,16 @@ function toSupabaseRecipe(recipe: Recipe, userId: string): Omit<SupabaseRecipe, 
     user_id: userId,
     title: recipe.title,
     description: recipe.description ?? null,
-    ingredients: recipe.ingredients,
-    steps: recipe.steps,
-    tags: recipe.tags ?? [],
+    ingredients: recipe.ingredients.map((ing) => ({
+      name: ing.name,
+      quantity: ing.amount,
+      unit: ing.unit ?? "",
+    })),
+    steps: recipe.steps.map((step) => ({
+      description: step.text,
+      duration: step.duration,
+    })),
+    tags: recipe.category ? [recipe.category] : [],
     total_time: recipe.totalTime ?? null,
     prep_time: recipe.prepTime ?? null,
     cook_time: recipe.cookTime ?? null,
@@ -48,22 +55,35 @@ function toSupabaseRecipe(recipe: Recipe, userId: string): Omit<SupabaseRecipe, 
   };
 }
 
+function isValidDifficulty(value: string): value is "easy" | "medium" | "hard" {
+  return value === "easy" || value === "medium" || value === "hard";
+}
+
 function fromSupabaseRecipe(data: SupabaseRecipe): Recipe {
   return {
     id: data.id,
     title: data.title,
     description: data.description ?? undefined,
-    ingredients: data.ingredients,
-    steps: data.steps,
-    tags: data.tags.length > 0 ? data.tags : undefined,
+    ingredients: data.ingredients.map((ing) => ({
+      name: ing.name,
+      amount: ing.quantity,
+      unit: ing.unit || undefined,
+    })),
+    steps: data.steps.map((step, index) => ({
+      stepNumber: index + 1,
+      text: step.description,
+      duration: step.duration,
+    })),
+    category: data.tags.length > 0 ? data.tags[0] : undefined,
     totalTime: data.total_time ?? undefined,
     prepTime: data.prep_time ?? undefined,
     cookTime: data.cook_time ?? undefined,
     servings: data.servings ?? undefined,
-    difficulty: data.difficulty ?? undefined,
+    difficulty: data.difficulty && isValidDifficulty(data.difficulty) ? data.difficulty : undefined,
     tips: data.tips.length > 0 ? data.tips : undefined,
     channelName: data.channel_name ?? undefined,
-    sourceUrl: data.source_url ?? undefined,
+    sourceUrl: data.source_url ?? "",
+    language: "ja",
     createdAt: data.created_at,
   };
 }

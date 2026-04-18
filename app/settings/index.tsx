@@ -37,7 +37,7 @@ export default function SettingsScreen() {
     setIsSyncing(true);
     try {
       const localRecipes = await getStoredRecipes<Recipe>();
-      await syncLocalToSupabase(localRecipes);
+      await syncLocalToSupabase(localRecipes, user.id);
       Alert.alert("成功", `${localRecipes.length}件のレシピを同期しました`);
     } catch (error) {
       Alert.alert("エラー", "同期に失敗しました");
