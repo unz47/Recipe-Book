@@ -1,5 +1,5 @@
-import type { Recipe } from "@/domain/entities/recipe";
-import { supabase } from "@/lib/supabase";
+import type { Recipe, Ingredient, Step } from "@/domain/entities/recipe";
+import { createClient } from "./supabase/client";
 
 type SupabaseRecipe = {
   id: string;
@@ -24,22 +24,26 @@ type SupabaseRecipe = {
   tips: string[];
   channel_name: string | null;
   source_url: string | null;
+  thumbnail_url: string | null;
   created_at: string;
   updated_at: string;
 };
 
-function toSupabaseRecipe(recipe: Recipe, userId: string): Omit<SupabaseRecipe, "created_at" | "updated_at"> {
+function toSupabaseRecipe(
+  recipe: Recipe,
+  userId: string
+): Omit<SupabaseRecipe, "created_at" | "updated_at"> {
   return {
     id: recipe.id,
     user_id: userId,
     title: recipe.title,
     description: recipe.description ?? null,
-    ingredients: recipe.ingredients.map((ing) => ({
+    ingredients: recipe.ingredients.map((ing: Ingredient) => ({
       name: ing.name,
       quantity: ing.amount,
       unit: ing.unit ?? "",
     })),
-    steps: recipe.steps.map((step) => ({
+    steps: recipe.steps.map((step: Step) => ({
       description: step.text,
       duration: step.duration,
     })),
@@ -52,10 +56,13 @@ function toSupabaseRecipe(recipe: Recipe, userId: string): Omit<SupabaseRecipe, 
     tips: recipe.tips ?? [],
     channel_name: recipe.channelName ?? null,
     source_url: recipe.sourceUrl ?? null,
+    thumbnail_url: recipe.thumbnailUrl ?? null,
   };
 }
 
-function isValidDifficulty(value: string): value is "easy" | "medium" | "hard" {
+function isValidDifficulty(
+  value: string
+): value is "easy" | "medium" | "hard" {
   return value === "easy" || value === "medium" || value === "hard";
 }
 
@@ -79,20 +86,25 @@ function fromSupabaseRecipe(data: SupabaseRecipe): Recipe {
     prepTime: data.prep_time ?? undefined,
     cookTime: data.cook_time ?? undefined,
     servings: data.servings ?? undefined,
-    difficulty: data.difficulty && isValidDifficulty(data.difficulty) ? data.difficulty : undefined,
+    difficulty:
+      data.difficulty && isValidDifficulty(data.difficulty)
+        ? data.difficulty
+        : undefined,
     tips: data.tips.length > 0 ? data.tips : undefined,
     channelName: data.channel_name ?? undefined,
     sourceUrl: data.source_url ?? "",
+    thumbnailUrl: data.thumbnail_url ?? undefined,
     language: "ja",
     createdAt: data.created_at,
   };
 }
 
 export async function getSupabaseRecipes(): Promise<Recipe[]> {
-  const { data: session } = await supabase.auth.getSession();
-  if (!session.session) {
-    return [];
-  }
+  const supabase = createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return [];
 
   const { data, error } = await supabase
     .from("recipes")
@@ -108,13 +120,13 @@ export async function getSupabaseRecipes(): Promise<Recipe[]> {
 }
 
 export async function saveSupabaseRecipe(recipe: Recipe): Promise<void> {
-  const { data: session } = await supabase.auth.getSession();
-  if (!session.session) {
-    throw new Error("User not authenticated");
-  }
+  const supabase = createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) throw new Error("User not authenticated");
 
-  const supabaseRecipe = toSupabaseRecipe(recipe, session.session.user.id);
-
+  const supabaseRecipe = toSupabaseRecipe(recipe, session.user.id);
   const { error } = await supabase
     .from("recipes")
     .upsert(supabaseRecipe, { onConflict: "id" });
@@ -126,10 +138,11 @@ export async function saveSupabaseRecipe(recipe: Recipe): Promise<void> {
 }
 
 export async function deleteSupabaseRecipe(id: string): Promise<void> {
-  const { data: session } = await supabase.auth.getSession();
-  if (!session.session) {
-    throw new Error("User not authenticated");
-  }
+  const supabase = createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) throw new Error("User not authenticated");
 
   const { error } = await supabase.from("recipes").delete().eq("id", id);
 
@@ -139,33 +152,23 @@ export async function deleteSupabaseRecipe(id: string): Promise<void> {
   }
 }
 
-export async function syncLocalToSupabase(localRecipes: Recipe[], userId: string): Promise<void> {
-  console.log("[syncLocalToSupabase] Starting sync, recipes count:", localRecipes.length);
-  console.log("[syncLocalToSupabase] User ID:", userId);
+export async function syncLocalToSupabase(
+  localRecipes: Recipe[],
+  userId: string
+): Promise<void> {
+  if (localRecipes.length === 0) return;
 
-  try {
-    if (localRecipes.length === 0) {
-      console.log("[syncLocalToSupabase] No recipes to sync");
-      return;
-    }
+  const supabase = createClient();
+  const supabaseRecipes = localRecipes.map((recipe) =>
+    toSupabaseRecipe(recipe, userId)
+  );
 
-    // ローカルのレシピを全てSupabaseにアップロード
-    console.log("[syncLocalToSupabase] Converting recipes to Supabase format...");
-    const supabaseRecipes = localRecipes.map((recipe) => toSupabaseRecipe(recipe, userId));
+  const { error } = await supabase
+    .from("recipes")
+    .upsert(supabaseRecipes, { onConflict: "id" });
 
-    console.log("[syncLocalToSupabase] Upserting", supabaseRecipes.length, "recipes to Supabase...");
-    const { error } = await supabase
-      .from("recipes")
-      .upsert(supabaseRecipes, { onConflict: "id" });
-
-    if (error) {
-      console.error("[syncLocalToSupabase] Error syncing recipes:", error);
-      throw error;
-    }
-
-    console.log("[syncLocalToSupabase] Sync completed successfully");
-  } catch (error) {
-    console.error("[syncLocalToSupabase] Unexpected error:", error);
+  if (error) {
+    console.error("Error syncing recipes:", error);
     throw error;
   }
 }

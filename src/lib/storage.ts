@@ -1,5 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 const RECIPES_KEY = "recipi-book:recipes";
 const SHOPPING_LIST_KEY = "recipi-book:shopping-list";
 
@@ -13,27 +11,36 @@ function safeParse<T>(raw: string): T[] {
   }
 }
 
+function isClient(): boolean {
+  return typeof window !== "undefined";
+}
+
 export async function getStoredRecipes<T>(): Promise<T[]> {
-  const raw = await AsyncStorage.getItem(RECIPES_KEY);
+  if (!isClient()) return [];
+  const raw = localStorage.getItem(RECIPES_KEY);
   if (!raw) return [];
   return safeParse<T>(raw);
 }
 
 export async function setStoredRecipes<T>(recipes: T[]): Promise<void> {
-  await AsyncStorage.setItem(RECIPES_KEY, JSON.stringify(recipes));
+  if (!isClient()) return;
+  localStorage.setItem(RECIPES_KEY, JSON.stringify(recipes));
 }
 
 export async function getStoredShoppingList<T>(): Promise<T[]> {
-  const raw = await AsyncStorage.getItem(SHOPPING_LIST_KEY);
+  if (!isClient()) return [];
+  const raw = localStorage.getItem(SHOPPING_LIST_KEY);
   if (!raw) return [];
   return safeParse<T>(raw);
 }
 
 export async function setStoredShoppingList<T>(list: T[]): Promise<void> {
-  await AsyncStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(list));
+  if (!isClient()) return;
+  localStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(list));
 }
 
 export async function clearStorage(): Promise<void> {
-  await AsyncStorage.removeItem(RECIPES_KEY);
-  await AsyncStorage.removeItem(SHOPPING_LIST_KEY);
+  if (!isClient()) return;
+  localStorage.removeItem(RECIPES_KEY);
+  localStorage.removeItem(SHOPPING_LIST_KEY);
 }

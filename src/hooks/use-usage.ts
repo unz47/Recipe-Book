@@ -1,5 +1,7 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
-import { getUserUsageClient } from "@/lib/usage-client";
+import { getUserUsage } from "@/lib/use-cases";
 
 type UsageData = {
   remaining: number;
@@ -11,25 +13,15 @@ type UsageData = {
 export function useUsage() {
   const [usage, setUsage] = useState<UsageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchUsage = useCallback(async () => {
-    console.log("[useUsage] Fetching usage data...");
     try {
       setIsLoading(true);
-      setError(null);
-
-      // クライアント側から直接Supabaseにアクセス
-      const usageData = await getUserUsageClient();
-      console.log("[useUsage] Usage data fetched:", usageData);
+      const usageData = await getUserUsage();
       setUsage(usageData);
-    } catch (err) {
-      console.error("[useUsage] Failed to fetch usage:", err);
-      // エラーは表示せず、静かに失敗させる（ログアウト状態など）
+    } catch {
       setUsage(null);
-      setError(null);
     } finally {
-      console.log("[useUsage] Fetch complete");
       setIsLoading(false);
     }
   }, []);
@@ -38,10 +30,5 @@ export function useUsage() {
     void fetchUsage();
   }, [fetchUsage]);
 
-  return {
-    usage,
-    isLoading,
-    error,
-    refresh: fetchUsage,
-  };
+  return { usage, isLoading, refresh: fetchUsage };
 }

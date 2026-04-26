@@ -1,12 +1,19 @@
 # dependencies
 node_modules/
 
-# expo / react-native
-.expo/
-dist/
+# next.js
+.next/
+out/
 
 # env files
 .env
+.env.local
+.env*.local
+
+# mobile (archived)
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
 
 # claude
 .claude/

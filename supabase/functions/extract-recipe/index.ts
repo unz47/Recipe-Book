@@ -219,7 +219,11 @@ async function invokeBedrock(
 ): Promise<string> {
   const service = "bedrock";
   const host = `bedrock-runtime.${region}.amazonaws.com`;
-  const endpoint = `https://${host}/model/${encodeURIComponent(modelId)}/invoke`;
+  // AWS SigV4: canonical URI はコロンを %3A にエンコードした形式を要求する。
+  // ただし Deno fetch はリクエスト URL 中の %3A を : にデコードして送信するため、
+  // fetch URL にはエンコードなしの : を使い、署名用 canonical URI には %3A を使う。
+  const fetchPath = `/model/${modelId}/invoke`;
+  const canonicalUri = `/model/${encodeURIComponent(modelId)}/invoke`;
 
   const now = new Date();
   const amzDate = now.toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
@@ -237,7 +241,7 @@ async function invokeBedrock(
 
   const canonicalRequest = [
     "POST",
-    `/model/${encodeURIComponent(modelId)}/invoke`,
+    canonicalUri,
     "",
     canonicalHeaders,
     signedHeaders,
@@ -263,6 +267,7 @@ async function invokeBedrock(
 
   const authorization = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
 
+  const endpoint = `https://${host}${fetchPath}`;
   const res = await fetch(endpoint, {
     method: "POST",
     headers: {
@@ -276,7 +281,13 @@ async function invokeBedrock(
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`Bedrock API error (${res.status}): ${errText.substring(0, 300)}`);
+    console.error("[invokeBedrock] Request failed:", {
+      status: res.status,
+      endpoint,
+      canonicalUri,
+      errorResponse: errText.substring(0, 1000),
+    });
+    throw new Error(`Bedrock API error (${res.status}): ${errText.substring(0, 500)}`);
   }
 
   return res.text();
@@ -398,6 +409,7 @@ async function extractRecipeWithBedrock(
     tags: recipe.tags,
     difficulty: recipe.difficulty,
     sourceUrl: `https://www.youtube.com/watch?v=${transcript.videoId}`,
+    thumbnailUrl: `https://i.ytimg.com/vi/${transcript.videoId}/hqdefault.jpg`,
     channelName: undefined,
     language: transcript.language,
     createdAt: new Date().toISOString(),

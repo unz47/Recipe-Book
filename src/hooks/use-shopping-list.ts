@@ -1,15 +1,15 @@
-import { useState, useCallback } from "react";
+"use client";
 
-import type { Recipe } from "@/domain/entities/recipe";
+import { useState, useCallback } from "react";
 import type { ShoppingGroup } from "@/domain/entities/shopping-item";
 import {
   getShoppingGroups,
-  addRecipeToShoppingList,
-  addManualItem,
+  addManualShoppingItem,
   toggleShoppingItem,
-  setShoppingItemsChecked,
+  toggleAllInGroup,
   clearCheckedItems,
-} from "@/application/use-cases/shopping-list";
+  removeRecipeFromShoppingList,
+} from "@/lib/use-cases";
 
 export function useShoppingList() {
   const [groups, setGroups] = useState<ShoppingGroup[]>([]);
@@ -19,9 +19,9 @@ export function useShoppingList() {
     setGroups(data);
   }, []);
 
-  const addRecipe = useCallback(
-    async (recipe: Recipe, servings?: number) => {
-      await addRecipeToShoppingList(recipe, servings);
+  const addItem = useCallback(
+    async (name: string) => {
+      await addManualShoppingItem(name);
       await refresh();
     },
     [refresh]
@@ -36,16 +36,8 @@ export function useShoppingList() {
   );
 
   const toggleAll = useCallback(
-    async (itemIds: string[], checked: boolean) => {
-      await setShoppingItemsChecked(itemIds, checked);
-      await refresh();
-    },
-    [refresh]
-  );
-
-  const addItem = useCallback(
-    async (name: string) => {
-      await addManualItem(name);
+    async (recipeId: string, checked: boolean) => {
+      await toggleAllInGroup(recipeId, checked);
       await refresh();
     },
     [refresh]
@@ -56,13 +48,13 @@ export function useShoppingList() {
     await refresh();
   }, [refresh]);
 
-  return {
-    groups,
-    refresh,
-    addRecipe,
-    addItem,
-    toggle,
-    toggleAll,
-    clearCompleted,
-  };
+  const removeGroup = useCallback(
+    async (recipeId: string) => {
+      await removeRecipeFromShoppingList(recipeId);
+      await refresh();
+    },
+    [refresh]
+  );
+
+  return { groups, refresh, addItem, toggle, toggleAll, clearCompleted, removeGroup };
 }

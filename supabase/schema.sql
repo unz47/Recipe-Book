@@ -17,18 +17,20 @@ CREATE TABLE IF NOT EXISTS recipes (
   tips TEXT[] DEFAULT '{}',
   channel_name TEXT,
   source_url TEXT,
+  thumbnail_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 使用制限テーブル
+-- 使用制限テーブル（ユーザーごと・月ごとに1行）
 CREATE TABLE IF NOT EXISTS user_usage (
-  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   month TEXT NOT NULL,
   extraction_count INTEGER DEFAULT 0,
   plan TEXT DEFAULT 'free' CHECK (plan IN ('free', 'premium')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  PRIMARY KEY (user_id, month)
 );
 
 -- インデックス作成
@@ -109,6 +111,4 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- user_usage テーブルにユニーク制約を追加（なければ）
-ALTER TABLE user_usage DROP CONSTRAINT IF EXISTS user_usage_user_id_month_key;
-ALTER TABLE user_usage ADD CONSTRAINT user_usage_user_id_month_key UNIQUE (user_id, month);
+-- NOTE: UNIQUE (user_id, month) は PRIMARY KEY で既に保証されるため不要

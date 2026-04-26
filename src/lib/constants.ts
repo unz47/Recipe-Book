@@ -1,3 +1,6 @@
+// Re-export shared constants from the mobile project's domain
+// These are framework-independent constants
+
 export const COLORS = {
   primary: {
     50: "#FFF5F0",
@@ -59,40 +62,6 @@ export const RECIPE_THUMBNAIL_COLORS = [
   "#FFF3D6",
 ] as const;
 
-// 使用制限関連
 export const USAGE = {
-  WARNING_THRESHOLD: 10, // 警告を表示する残り回数の閾値
-} as const;
-
-// スタイリング定数
-export const SPACING = {
-  XS: 4,
-  SM: 8,
-  MD: 12,
-  LG: 16,
-  XL: 20,
-  XXL: 24,
-  XXXL: 32,
-} as const;
-
-export const FONT_SIZE = {
-  XS: 12,
-  SM: 13,
-  MD: 15,
-  LG: 17,
-  XL: 24,
-  XXL: 28,
-} as const;
-
-export const FONT_WEIGHT = {
-  REGULAR: "400" as const,
-  MEDIUM: "500" as const,
-  SEMIBOLD: "600" as const,
-  BOLD: "700" as const,
-};
-
-export const BORDER_RADIUS = {
-  SM: 8,
-  MD: 12,
-  LG: 16,
+  WARNING_THRESHOLD: 2,
 } as const;

@@ -1,15 +1,38 @@
-import { useState, useCallback } from "react";
+"use client";
 
-import type { RecipeDto } from "@/application/dto/extract-recipe-dto";
-import { extractRecipeFromApi } from "@/application/use-cases/extract-recipe";
-import { checkUsageLimitClient } from "@/lib/usage-client";
-import { supabase } from "@/lib/supabase";
+import { useState, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
+import {
+  extractRecipeFromApi,
+  checkUsageLimit,
+  incrementUsageCount,
+} from "@/lib/use-cases";
+
+type RecipeDto = {
+  id: string;
+  title: string;
+  description?: string;
+  servings?: string;
+  prepTime?: string;
+  cookTime?: string;
+  totalTime?: string;
+  ingredients: { name: string; amount: string; unit?: string; notes?: string }[];
+  steps: { stepNumber: number; text: string; duration?: string }[];
+  tips?: string[];
+  difficulty?: "easy" | "medium" | "hard";
+  sourceUrl: string;
+  thumbnailUrl?: string;
+  channelName?: string;
+  language: "ja" | "en";
+  createdAt: string;
+};
 
 type ExtractState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "success"; data: RecipeDto }
-  | { status: "error"; error: string };
+  | { status: "error"; error: string }
+  | { status: "limit_reached" };
 
 export function useExtractRecipe() {
   const [state, setState] = useState<ExtractState>({ status: "idle" });
@@ -18,26 +41,22 @@ export function useExtractRecipe() {
     try {
       setState({ status: "loading" });
 
-      // 使用制限チェック（ログイン済みの場合のみ）
+      const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (user) {
-        const canExtract = await checkUsageLimitClient();
+        const canExtract = await checkUsageLimit();
         if (!canExtract) {
-          setState({
-            status: "error",
-            error: "今月の抽出回数の上限に達しました。来月また利用できます。",
-          });
-          return null;
+          setState({ status: "limit_reached" });
+          return "limit_reached" as const;
         }
       }
 
       const result = await extractRecipeFromApi(url);
 
       if (result.success) {
-        // 抽出成功後にカウントを増やす（ログイン済みの場合のみ）
         if (user) {
           await incrementUsageCount();
         }
@@ -63,37 +82,8 @@ export function useExtractRecipe() {
   return {
     ...state,
     isLoading: state.status === "loading",
+    isLimitReached: state.status === "limit_reached",
     extract,
     reset,
   };
-}
-
-/**
- * 抽出回数を増加（クライアント側）
- */
-async function incrementUsageCount() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return;
-
-  const currentMonth = getCurrentMonth();
-
-  // increment_extraction_count関数を呼び出す
-  const { error } = await supabase.rpc("increment_extraction_count", {
-    p_user_id: user.id,
-    p_month: currentMonth,
-  });
-
-  if (error) {
-    console.error("Failed to increment usage count:", error);
-  }
-}
-
-function getCurrentMonth(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
 }

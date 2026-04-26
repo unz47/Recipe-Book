@@ -1,8 +1,8 @@
 import { supabase } from "./supabase";
 
 const PLAN_LIMITS = {
-  free: 10,
-  premium: 120,
+  free: 5,
+  premium: 50,
 } as const;
 
 type PlanType = keyof typeof PLAN_LIMITS;

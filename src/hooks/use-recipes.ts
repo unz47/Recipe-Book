@@ -1,14 +1,15 @@
-import { useState, useCallback } from "react";
+"use client";
 
+import { useState, useCallback } from "react";
 import type { Recipe } from "@/domain/entities/recipe";
 import {
   listRecipes,
   getRecipeById,
   searchRecipes,
-} from "@/application/use-cases/list-recipes";
-import { saveRecipe } from "@/application/use-cases/save-recipe";
-import { updateRecipe } from "@/application/use-cases/update-recipe";
-import { deleteRecipe } from "@/application/use-cases/delete-recipe";
+  saveRecipe,
+  updateRecipe,
+  deleteRecipe,
+} from "@/lib/use-cases";
 
 export function useRecipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -27,10 +28,7 @@ export function useRecipes() {
   );
 
   const update = useCallback(
-    async (
-      id: string,
-      updates: Partial<Omit<Recipe, "id" | "createdAt">>
-    ) => {
+    async (id: string, updates: Partial<Omit<Recipe, "id" | "createdAt">>) => {
       const result = await updateRecipe(id, updates);
       await refresh();
       return result;
@@ -61,13 +59,5 @@ export function useRecipes() {
     return getRecipeById(id);
   }, []);
 
-  return {
-    recipes,
-    refresh,
-    save,
-    update,
-    remove,
-    search,
-    getById,
-  };
+  return { recipes, refresh, save, update, remove, search, getById };
 }

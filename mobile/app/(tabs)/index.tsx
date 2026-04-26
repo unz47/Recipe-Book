@@ -70,11 +70,18 @@ export default function HomeScreen() {
   }
 
   const handleExtract = async (url: string) => {
-    const dto = await extractState.extract(url);
-    if (dto?.id) {
+    const result = await extractState.extract(url);
+
+    // 上限に達した場合はペイウォールを表示
+    if (result === "limit_reached") {
+      router.push("/paywall");
+      return;
+    }
+
+    if (result?.id) {
       const recipe: Recipe = {
-        ...dto,
-        createdAt: dto.createdAt ?? new Date().toISOString(),
+        ...result,
+        createdAt: result.createdAt ?? new Date().toISOString(),
       };
       await save(recipe);
       await refreshUsage(); // 抽出成功後に使用状況を更新
