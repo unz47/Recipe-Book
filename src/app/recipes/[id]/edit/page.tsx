@@ -6,6 +6,7 @@ import { Plus, X } from "lucide-react";
 
 import type { Recipe, Ingredient, Step } from "@/domain/entities/recipe";
 import { useRecipes } from "@/hooks/use-recipes";
+import { RECIPE_CATEGORIES } from "@/lib/constants";
 
 type PageParams = { id: string };
 
@@ -22,6 +23,7 @@ export default function RecipeEditPage({
   // フォーム状態
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState<string | undefined>(undefined);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [steps, setSteps] = useState<Step[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -32,6 +34,7 @@ export default function RecipeEditPage({
         setRecipe(r);
         setTitle(r.title);
         setDescription(r.description ?? "");
+        setCategory(r.category);
         setIngredients([...r.ingredients]);
         setSteps([...r.steps]);
       }
@@ -45,6 +48,7 @@ export default function RecipeEditPage({
       await update(recipe.id, {
         title: title.trim(),
         description: description.trim() || undefined,
+        category,
         ingredients,
         steps: steps.map((s, i) => ({ ...s, stepNumber: i + 1 })),
       });
@@ -52,7 +56,7 @@ export default function RecipeEditPage({
     } finally {
       setIsSaving(false);
     }
-  }, [recipe, isSaving, title, description, ingredients, steps, update, router]);
+  }, [recipe, isSaving, title, description, category, ingredients, steps, update, router]);
 
   // 材料の操作
   const updateIngredient = (index: number, field: keyof Ingredient, value: string) => {
@@ -146,6 +150,29 @@ export default function RecipeEditPage({
               className="w-full resize-none bg-transparent text-sm leading-relaxed text-app-text placeholder:text-app-text-placeholder focus:outline-none"
               placeholder="レシピの説明を入力..."
             />
+          </div>
+        </div>
+
+        {/* Genre */}
+        <div>
+          <label className="mb-2 block text-[13px] font-medium text-app-text-secondary">
+            ジャンル
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {RECIPE_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setCategory(category === cat ? undefined : cat)}
+                className={`inline-flex h-8 items-center rounded-full px-3 text-[13px] font-medium transition-colors ${
+                  category === cat
+                    ? "bg-amber-100 text-amber-800 border border-amber-300"
+                    : "border border-app-border bg-white text-app-text-secondary hover:bg-app-surface"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
         </div>
 

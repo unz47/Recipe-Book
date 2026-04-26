@@ -11,7 +11,7 @@ import {
   ShoppingCart,
   Trash2,
   Lightbulb,
-  Bookmark,
+  Star,
 } from "lucide-react";
 
 import type { Recipe } from "@/domain/entities/recipe";
@@ -104,9 +104,9 @@ export default function RecipeDetailPage({
           <button
             onClick={handleToggleBookmark}
             className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-app-surface"
-            aria-label={recipe?.isFavorite ? "ブックマーク解除" : "ブックマーク"}
+            aria-label={recipe?.isFavorite ? "お気に入り解除" : "お気に入りに追加"}
           >
-            <Bookmark
+            <Star
               className={`h-5 w-5 ${recipe?.isFavorite ? "fill-app-accent text-app-accent" : "text-app-text-secondary"}`}
             />
           </button>

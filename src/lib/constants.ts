@@ -62,6 +62,21 @@ export const RECIPE_THUMBNAIL_COLORS = [
   "#FFF3D6",
 ] as const;
 
+export const RECIPE_CATEGORIES = [
+  "和食",
+  "洋食",
+  "中華",
+  "韓国料理",
+  "イタリアン",
+  "エスニック",
+  "お菓子",
+  "パン",
+  "簡単",
+  "作り置き",
+] as const;
+
+export type RecipeCategory = (typeof RECIPE_CATEGORIES)[number];
+
 export const USAGE = {
   WARNING_THRESHOLD: 2,
 } as const;

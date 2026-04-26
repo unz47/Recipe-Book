@@ -11,9 +11,10 @@ import {
   DIFFICULTY_LABELS,
   DIFFICULTY_COLORS,
   RECIPE_THUMBNAIL_COLORS,
+  RECIPE_CATEGORIES,
 } from "@/lib/constants";
 
-const CATEGORIES = ["all", "favorites", "和食", "洋食", "中華", "簡単"] as const;
+const FILTER_TABS = ["all", "favorites", ...RECIPE_CATEGORIES] as const;
 
 export default function RecipesPage() {
   const router = useRouter();
@@ -60,7 +61,7 @@ export default function RecipesPage() {
 
       {/* Filter Chips */}
       <div className="-mx-5 mb-5 flex gap-2 overflow-x-auto px-5 sm:mx-0 sm:flex-wrap sm:px-0">
-        {CATEGORIES.map((cat) => (
+        {FILTER_TABS.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
