@@ -56,18 +56,44 @@ export async function searchRecipes(query: string): Promise<Recipe[]> {
   );
 }
 
-export async function saveRecipe(recipe: Recipe): Promise<void> {
+export type SaveRecipeResult =
+  | { success: true }
+  | { success: false; reason: "storage_limit_reached" };
+
+export async function saveRecipe(
+  recipe: Recipe
+): Promise<SaveRecipeResult> {
   if (await isLoggedIn()) {
+    // ログイン済みユーザーのプランを確認して保存上限をチェック
+    const usage = await getUserUsage();
+    const storageLimit = PLANS[usage.plan].recipeStorageLimit;
+
+    if (Number.isFinite(storageLimit)) {
+      const recipes = await getSupabaseRecipes();
+      const isExisting = recipes.some((r) => r.id === recipe.id);
+      if (!isExisting && recipes.length >= storageLimit) {
+        return { success: false, reason: "storage_limit_reached" };
+      }
+    }
+
     await saveSupabaseRecipe(recipe);
+    return { success: true };
   } else {
     const recipes = await getStoredRecipes<Recipe>();
     const existingIndex = recipes.findIndex((r) => r.id === recipe.id);
+
     if (existingIndex >= 0) {
       recipes[existingIndex] = recipe;
     } else {
+      // 未ログインはFreeプラン扱い
+      const storageLimit = PLANS.free.recipeStorageLimit;
+      if (recipes.length >= storageLimit) {
+        return { success: false, reason: "storage_limit_reached" };
+      }
       recipes.unshift(recipe);
     }
     await setStoredRecipes(recipes);
+    return { success: true };
   }
 }
 
@@ -199,12 +225,8 @@ export async function extractRecipeFromApi(
 
 // --- Usage ---
 
-const PLAN_LIMITS = {
-  free: 5,
-  premium: 50,
-} as const;
-
-type PlanType = keyof typeof PLAN_LIMITS;
+import { PLANS } from "./constants";
+import type { PlanType } from "./constants";
 
 function getCurrentMonth(): string {
   const now = new Date();
@@ -220,9 +242,10 @@ export async function getUserUsage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
+    const freeLimit = PLANS.free.monthlyExtractionLimit;
     return {
-      remaining: PLAN_LIMITS.free,
-      limit: PLAN_LIMITS.free,
+      remaining: freeLimit,
+      limit: freeLimit,
       used: 0,
       plan: "free" as PlanType,
     };
@@ -238,37 +261,42 @@ export async function getUserUsage() {
 
   if (error) {
     console.error("Failed to fetch user usage:", error);
-    // エラー時はデフォルト値を返してUIをブロックしない
+    const freeLimit = PLANS.free.monthlyExtractionLimit;
     return {
-      remaining: PLAN_LIMITS.free,
-      limit: PLAN_LIMITS.free,
+      remaining: freeLimit,
+      limit: freeLimit,
       used: 0,
       plan: "free" as PlanType,
     };
   }
 
   if (!data) {
+    const freeLimit = PLANS.free.monthlyExtractionLimit;
     return {
-      remaining: PLAN_LIMITS.free,
-      limit: PLAN_LIMITS.free,
+      remaining: freeLimit,
+      limit: freeLimit,
       used: 0,
       plan: "free" as PlanType,
     };
   }
 
-  const limit = PLAN_LIMITS[data.plan as PlanType];
-  const remaining = Math.max(0, limit - data.extraction_count);
+  const plan = (data.plan as PlanType) ?? "free";
+  const limit = PLANS[plan].monthlyExtractionLimit;
+  const remaining = Number.isFinite(limit)
+    ? Math.max(0, limit - data.extraction_count)
+    : Infinity;
 
   return {
     remaining,
     limit,
     used: data.extraction_count,
-    plan: data.plan as PlanType,
+    plan,
   };
 }
 
 export async function checkUsageLimit(): Promise<boolean> {
   const usage = await getUserUsage();
+  if (!Number.isFinite(usage.limit)) return true; // Premium: 無制限
   return usage.used < usage.limit;
 }
 

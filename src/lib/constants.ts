@@ -77,6 +77,27 @@ export const RECIPE_CATEGORIES = [
 
 export type RecipeCategory = (typeof RECIPE_CATEGORIES)[number];
 
+export const PLANS = {
+  free: {
+    label: "Free",
+    monthlyExtractionLimit: 5,
+    recipeStorageLimit: 10,
+    cloudSync: false,
+  },
+  premium: {
+    label: "Premium",
+    monthlyExtractionLimit: Infinity, // 無制限
+    recipeStorageLimit: Infinity, // 無制限
+    cloudSync: true,
+    price: {
+      monthly: 380,
+      yearly: 2800,
+    },
+  },
+} as const;
+
+export type PlanType = keyof typeof PLANS;
+
 export const USAGE = {
   WARNING_THRESHOLD: 2,
 } as const;

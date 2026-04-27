@@ -10,6 +10,7 @@ import {
   updateRecipe,
   deleteRecipe,
 } from "@/lib/use-cases";
+import type { SaveRecipeResult } from "@/lib/use-cases";
 
 export function useRecipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -20,9 +21,12 @@ export function useRecipes() {
   }, []);
 
   const save = useCallback(
-    async (recipe: Recipe) => {
-      await saveRecipe(recipe);
-      await refresh();
+    async (recipe: Recipe): Promise<SaveRecipeResult> => {
+      const result = await saveRecipe(recipe);
+      if (result.success) {
+        await refresh();
+      }
+      return result;
     },
     [refresh]
   );

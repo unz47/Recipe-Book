@@ -17,14 +17,17 @@ type UsageInfoCardProps = {
 
 export function UsageInfoCard({ usage }: UsageInfoCardProps) {
   const router = useRouter();
-  const isWarning = usage.remaining <= USAGE.WARNING_THRESHOLD && usage.remaining > 0;
-  const isExhausted = usage.remaining === 0;
+  const isPremium = usage.plan === "premium";
+  const isUnlimited = !Number.isFinite(usage.limit);
+  const isWarning = !isUnlimited && usage.remaining <= USAGE.WARNING_THRESHOLD && usage.remaining > 0;
+  const isExhausted = !isUnlimited && usage.remaining === 0;
   const isFree = usage.plan === "free";
 
   const getWarningMessage = () => {
+    if (isUnlimited) return null;
     if (isExhausted) {
       return isFree
-        ? "今月の上限に達しました。Premium にアップグレードすると月50回まで利用できます。"
+        ? "今月の上限に達しました。Premium にアップグレードすると無制限に利用できます。"
         : "今月の上限に達しました。来月また利用できます。";
     }
     if (isWarning) {
@@ -44,17 +47,30 @@ export function UsageInfoCard({ usage }: UsageInfoCardProps) {
             <Text style={styles.freeBadgeText}>Free</Text>
           </View>
         )}
+        {isPremium && (
+          <View style={[styles.freeBadge, { backgroundColor: COLORS.primary[100] }]}>
+            <Text style={[styles.freeBadgeText, { color: COLORS.primary.DEFAULT }]}>Premium</Text>
+          </View>
+        )}
       </View>
-      <Text
-        style={[
-          styles.count,
-          {
-            color: usage.remaining > USAGE.WARNING_THRESHOLD ? COLORS.primary.DEFAULT : COLORS.danger,
-          },
-        ]}
-      >
-        {usage.remaining} / {usage.limit}回
-      </Text>
+      {isUnlimited ? (
+        <Text
+          style={[styles.count, { color: COLORS.primary.DEFAULT }]}
+        >
+          無制限
+        </Text>
+      ) : (
+        <Text
+          style={[
+            styles.count,
+            {
+              color: usage.remaining > USAGE.WARNING_THRESHOLD ? COLORS.primary.DEFAULT : COLORS.danger,
+            },
+          ]}
+        >
+          {usage.remaining} / {usage.limit}回
+        </Text>
+      )}
       {warningMessage && <Text style={styles.warning}>{warningMessage}</Text>}
       {isFree && (isExhausted || isWarning) && (
         <TouchableOpacity

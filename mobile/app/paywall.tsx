@@ -12,25 +12,26 @@ import { useRouter } from "expo-router";
 import Purchases, { PurchasesPackage, PURCHASES_ERROR_CODE } from "react-native-purchases";
 import { X, Check, Sparkles, CookingPot } from "lucide-react-native";
 
-import { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS } from "@/lib/constants";
+import { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, PLANS } from "@/lib/constants";
 import { isRevenueCatInitialized } from "@/infrastructure/services/revenue-cat";
 
 const PLAN_FEATURES = {
   free: [
-    { text: "月5回のレシピ抽出", included: true },
-    { text: "レシピの保存・編集", included: true },
+    { text: `月${PLANS.free.monthlyExtractionLimit}回のレシピ抽出`, included: true },
+    { text: `レシピ保存 ${PLANS.free.recipeStorageLimit}件まで`, included: true },
     { text: "買い物リスト", included: true },
     { text: "クラウド同期", included: false },
-    { text: "月50回のレシピ抽出", included: false },
+    { text: "レシピ抽出 無制限", included: false },
+    { text: "レシピ保存 無制限", included: false },
   ],
   premium: [
-    { text: "月50回のレシピ抽出", included: true },
-    { text: "レシピの保存・編集", included: true },
+    { text: "レシピ抽出 無制限", included: true },
+    { text: "レシピ保存 無制限", included: true },
     { text: "買い物リスト", included: true },
     { text: "クラウド同期", included: true },
     { text: "優先サポート", included: true },
   ],
-} as const;
+};
 
 export default function PaywallScreen() {
   const router = useRouter();

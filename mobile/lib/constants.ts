@@ -59,6 +59,28 @@ export const RECIPE_THUMBNAIL_COLORS = [
   "#FFF3D6",
 ] as const;
 
+// プラン定義
+export const PLANS = {
+  free: {
+    label: "Free",
+    monthlyExtractionLimit: 5,
+    recipeStorageLimit: 10,
+    cloudSync: false,
+  },
+  premium: {
+    label: "Premium",
+    monthlyExtractionLimit: Infinity, // 無制限
+    recipeStorageLimit: Infinity, // 無制限
+    cloudSync: true,
+    price: {
+      monthly: 380,
+      yearly: 2800,
+    },
+  },
+} as const;
+
+export type PlanType = keyof typeof PLANS;
+
 // 使用制限関連
 export const USAGE = {
   WARNING_THRESHOLD: 2, // 警告を表示する残り回数の閾値

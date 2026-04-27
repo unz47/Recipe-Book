@@ -16,7 +16,7 @@ import { useRecipes } from "@/hooks/use-recipes";
 import { useExtractRecipe } from "@/hooks/use-extract-recipe";
 import { useAuth } from "@/hooks/use-auth";
 import { useUsage } from "@/hooks/use-usage";
-import { DIFFICULTY_LABELS, DIFFICULTY_COLORS, RECIPE_THUMBNAIL_COLORS } from "@/lib/constants";
+import { DIFFICULTY_LABELS, DIFFICULTY_COLORS, RECIPE_THUMBNAIL_COLORS, PLANS } from "@/lib/constants";
 
 export default function HomePage() {
   const router = useRouter();
@@ -25,6 +25,7 @@ export default function HomePage() {
   const { isAuthenticated } = useAuth();
   const { usage, refresh: refreshUsage } = useUsage();
   const [url, setUrl] = useState("");
+  const [storageLimitReached, setStorageLimitReached] = useState(false);
 
   useEffect(() => {
     void refresh();
@@ -45,7 +46,13 @@ export default function HomePage() {
         ...result,
         createdAt: result.createdAt ?? new Date().toISOString(),
       };
-      await save(recipe);
+      const saveResult = await save(recipe);
+      if (!saveResult.success && saveResult.reason === "storage_limit_reached") {
+        extractState.reset();
+        setStorageLimitReached(true);
+        return;
+      }
+      setStorageLimitReached(false);
       setUrl("");
       void refreshUsage();
       router.push(`/recipes/${recipe.id}`);
@@ -123,22 +130,37 @@ export default function HomePage() {
           </p>
         )}
 
+        {/* Storage Limit Reached */}
+        {storageLimitReached && (
+          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            レシピの保存上限（{PLANS.free.recipeStorageLimit}件）に達しました。
+            Premium にアップグレードすると無制限に保存できます。
+          </div>
+        )}
+
         {/* Usage Info */}
         {isAuthenticated && usage && (
           <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-app-surface px-4 py-1.5 text-sm text-app-text-secondary">
-            <span>
-              今月の残り回数:{" "}
-              <span
-                className={
-                  usage.remaining <= 2
-                    ? "font-bold text-app-danger"
-                    : "font-bold text-app-primary"
-                }
-              >
-                {usage.remaining}
-              </span>{" "}
-              / {usage.limit}
-            </span>
+            {Number.isFinite(usage.limit) ? (
+              <span>
+                今月の残り回数:{" "}
+                <span
+                  className={
+                    usage.remaining <= 2
+                      ? "font-bold text-app-danger"
+                      : "font-bold text-app-primary"
+                  }
+                >
+                  {usage.remaining}
+                </span>{" "}
+                / {usage.limit}
+              </span>
+            ) : (
+              <span>
+                <span className="font-bold text-app-primary">Premium</span>{" "}
+                — レシピ抽出 無制限
+              </span>
+            )}
           </div>
         )}
       </section>

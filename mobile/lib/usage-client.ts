@@ -1,11 +1,6 @@
 import { supabase } from "./supabase";
-
-const PLAN_LIMITS = {
-  free: 5,
-  premium: 50,
-} as const;
-
-type PlanType = keyof typeof PLAN_LIMITS;
+import { PLANS } from "./constants";
+import type { PlanType } from "./constants";
 
 /**
  * 現在の月を YYYY-MM 形式で取得
@@ -26,9 +21,10 @@ export async function getUserUsageClient() {
   } = await supabase.auth.getUser();
 
   if (!user) {
+    const freeLimit = PLANS.free.monthlyExtractionLimit;
     return {
-      remaining: PLAN_LIMITS.free,
-      limit: PLAN_LIMITS.free,
+      remaining: freeLimit,
+      limit: freeLimit,
       used: 0,
       plan: "free" as PlanType,
     };
@@ -49,22 +45,26 @@ export async function getUserUsageClient() {
 
   // レコードが存在しない場合は初期値
   if (!data) {
+    const freeLimit = PLANS.free.monthlyExtractionLimit;
     return {
-      remaining: PLAN_LIMITS.free,
-      limit: PLAN_LIMITS.free,
+      remaining: freeLimit,
+      limit: freeLimit,
       used: 0,
       plan: "free" as PlanType,
     };
   }
 
-  const limit = PLAN_LIMITS[data.plan as PlanType];
-  const remaining = Math.max(0, limit - data.extraction_count);
+  const plan = (data.plan as PlanType) ?? "free";
+  const limit = PLANS[plan].monthlyExtractionLimit;
+  const remaining = Number.isFinite(limit)
+    ? Math.max(0, limit - data.extraction_count)
+    : Infinity;
 
   return {
     remaining,
     limit,
     used: data.extraction_count,
-    plan: data.plan as PlanType,
+    plan,
   };
 }
 
@@ -73,5 +73,6 @@ export async function getUserUsageClient() {
  */
 export async function checkUsageLimitClient(): Promise<boolean> {
   const usage = await getUserUsageClient();
+  if (!Number.isFinite(usage.limit)) return true; // Premium: 無制限
   return usage.used < usage.limit;
 }
