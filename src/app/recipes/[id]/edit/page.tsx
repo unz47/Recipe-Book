@@ -202,12 +202,20 @@ export default function RecipeEditPage({
                     className="h-full w-full bg-transparent text-sm text-app-text placeholder:text-app-text-placeholder focus:outline-none"
                   />
                 </div>
-                <div className="flex h-11 w-[90px] items-center rounded-lg border border-app-border bg-white px-3">
+                <div className="flex h-11 w-[60px] items-center rounded-lg border border-app-border bg-white px-3">
                   <input
-                    value={`${ing.amount}${ing.unit ?? ""}`}
+                    value={ing.amount}
                     onChange={(e) => updateIngredient(i, "amount", e.target.value)}
                     placeholder="量"
-                    className="h-full w-full bg-transparent text-sm text-app-text placeholder:text-app-text-placeholder focus:outline-none"
+                    className="h-full w-full bg-transparent text-center text-sm text-app-text placeholder:text-app-text-placeholder focus:outline-none"
+                  />
+                </div>
+                <div className="flex h-11 w-[50px] items-center rounded-lg border border-app-border bg-white px-3">
+                  <input
+                    value={ing.unit ?? ""}
+                    onChange={(e) => updateIngredient(i, "unit", e.target.value)}
+                    placeholder="単位"
+                    className="h-full w-full bg-transparent text-center text-sm text-app-text placeholder:text-app-text-placeholder focus:outline-none"
                   />
                 </div>
                 <button

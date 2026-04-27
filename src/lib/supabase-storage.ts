@@ -25,6 +25,7 @@ type SupabaseRecipe = {
   channel_name: string | null;
   source_url: string | null;
   thumbnail_url: string | null;
+  is_favorite: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -57,6 +58,7 @@ function toSupabaseRecipe(
     channel_name: recipe.channelName ?? null,
     source_url: recipe.sourceUrl ?? null,
     thumbnail_url: recipe.thumbnailUrl ?? null,
+    is_favorite: recipe.isFavorite ?? false,
   };
 }
 
@@ -94,6 +96,7 @@ function fromSupabaseRecipe(data: SupabaseRecipe): Recipe {
     channelName: data.channel_name ?? undefined,
     sourceUrl: data.source_url ?? "",
     thumbnailUrl: data.thumbnail_url ?? undefined,
+    isFavorite: data.is_favorite ?? false,
     language: "ja",
     createdAt: data.created_at,
   };

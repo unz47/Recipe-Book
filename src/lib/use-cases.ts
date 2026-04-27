@@ -297,11 +297,16 @@ function generateId(): string {
 }
 
 function adjustAmount(amount: string, ratio: number): string {
-  const num = parseFloat(amount);
+  const match = amount.match(/^(\d+(?:\.\d+)?)\s*(.*)/);
+  if (!match) return amount;
+  const num = parseFloat(match[1]);
   if (isNaN(num)) return amount;
+  const suffix = match[2]; // 単位が含まれていた場合保持する（例: "500g" → "g"）
   const adjusted = num * ratio;
-  if (Number.isInteger(adjusted)) return adjusted.toString();
-  return parseFloat(adjusted.toFixed(2)).toString();
+  const adjustedStr = Number.isInteger(adjusted)
+    ? adjusted.toString()
+    : parseFloat(adjusted.toFixed(2)).toString();
+  return suffix ? `${adjustedStr}${suffix}` : adjustedStr;
 }
 
 export async function getShoppingGroups(): Promise<ShoppingGroup[]> {

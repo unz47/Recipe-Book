@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS recipes (
   channel_name TEXT,
   source_url TEXT,
   thumbnail_url TEXT,
+  is_favorite BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

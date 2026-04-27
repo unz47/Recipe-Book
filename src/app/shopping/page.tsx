@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { ShoppingCart, Utensils, Check } from "lucide-react";
 
 import { useShoppingList } from "@/hooks/use-shopping-list";
@@ -10,6 +10,18 @@ const GROUP_ICON_COLORS = ["#E86A30", "#5C8A5C", "#E5A820", "#C85420", "#7DA37D"
 export default function ShoppingPage() {
   const { groups, refresh, toggle, clearCompleted } =
     useShoppingList();
+
+  const handleToggle = useCallback(
+    async (itemId: string) => {
+      try {
+        await toggle(itemId);
+      } catch (err) {
+        console.error("Failed to toggle shopping item:", err);
+        await refresh();
+      }
+    },
+    [toggle, refresh]
+  );
 
   useEffect(() => {
     void refresh();
@@ -76,7 +88,7 @@ export default function ShoppingPage() {
                     >
                       {/* Checkbox */}
                       <button
-                        onClick={() => void toggle(item.id)}
+                        onClick={() => void handleToggle(item.id)}
                         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
                           item.checked
                             ? "border-app-primary bg-app-primary"

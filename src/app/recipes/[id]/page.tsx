@@ -54,11 +54,12 @@ export default function RecipeDetailPage({
     router.push("/recipes");
   }, [recipe, remove, router]);
 
-  const handleToggleBookmark = useCallback(async () => {
+  const handleToggleFavorite = useCallback(async () => {
     if (!recipe) return;
-    const updated = { ...recipe, isFavorite: !recipe.isFavorite };
-    await update(recipe.id, { isFavorite: !recipe.isFavorite });
+    const newFavorite = !recipe.isFavorite;
+    const updated = { ...recipe, isFavorite: newFavorite };
     setRecipe(updated);
+    await update(recipe.id, { isFavorite: newFavorite });
   }, [recipe, update]);
 
   const handleAddToShoppingList = useCallback(async () => {
@@ -102,7 +103,7 @@ export default function RecipeDetailPage({
         </button>
         <div className="flex items-center gap-1">
           <button
-            onClick={handleToggleBookmark}
+            onClick={handleToggleFavorite}
             className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-app-surface"
             aria-label={recipe?.isFavorite ? "お気に入り解除" : "お気に入りに追加"}
           >
@@ -192,7 +193,7 @@ export default function RecipeDetailPage({
           <div className="overflow-hidden rounded-xl border border-app-border bg-white">
             {recipe.ingredients.map((ing, i) => (
               <div
-                key={i}
+                key={`${ing.name}-${i}`}
                 className={`flex items-center justify-between px-4 py-3.5 ${
                   i < recipe.ingredients.length - 1
                     ? "border-b border-app-border"

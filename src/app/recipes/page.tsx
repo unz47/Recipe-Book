@@ -32,7 +32,7 @@ export default function RecipesPage() {
   };
 
   const filteredRecipes = recipes.filter((r) => {
-    if (activeCategory === "favorites") return r.isFavorite;
+    if (activeCategory === "favorites") return r.isFavorite === true;
     if (activeCategory !== "all") return r.category === activeCategory;
     return true;
   });
