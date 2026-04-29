@@ -86,7 +86,7 @@ export const PLANS = {
   },
   premium: {
     label: "Premium",
-    monthlyExtractionLimit: Infinity, // 無制限
+    monthlyExtractionLimit: 100,
     recipeStorageLimit: Infinity, // 無制限
     cloudSync: true,
     price: {

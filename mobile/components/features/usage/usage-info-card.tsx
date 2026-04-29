@@ -18,16 +18,14 @@ type UsageInfoCardProps = {
 export function UsageInfoCard({ usage }: UsageInfoCardProps) {
   const router = useRouter();
   const isPremium = usage.plan === "premium";
-  const isUnlimited = !Number.isFinite(usage.limit);
-  const isWarning = !isUnlimited && usage.remaining <= USAGE.WARNING_THRESHOLD && usage.remaining > 0;
-  const isExhausted = !isUnlimited && usage.remaining === 0;
+  const isWarning = usage.remaining <= USAGE.WARNING_THRESHOLD && usage.remaining > 0;
+  const isExhausted = usage.remaining === 0;
   const isFree = usage.plan === "free";
 
   const getWarningMessage = () => {
-    if (isUnlimited) return null;
     if (isExhausted) {
       return isFree
-        ? "今月の上限に達しました。Premium にアップグレードすると無制限に利用できます。"
+        ? "今月の上限に達しました。Premium にアップグレードすると月100回まで利用できます。"
         : "今月の上限に達しました。来月また利用できます。";
     }
     if (isWarning) {
@@ -53,24 +51,16 @@ export function UsageInfoCard({ usage }: UsageInfoCardProps) {
           </View>
         )}
       </View>
-      {isUnlimited ? (
-        <Text
-          style={[styles.count, { color: COLORS.primary.DEFAULT }]}
-        >
-          無制限
-        </Text>
-      ) : (
-        <Text
-          style={[
-            styles.count,
-            {
-              color: usage.remaining > USAGE.WARNING_THRESHOLD ? COLORS.primary.DEFAULT : COLORS.danger,
-            },
-          ]}
-        >
-          {usage.remaining} / {usage.limit}回
-        </Text>
-      )}
+      <Text
+        style={[
+          styles.count,
+          {
+            color: usage.remaining > USAGE.WARNING_THRESHOLD ? COLORS.primary.DEFAULT : COLORS.danger,
+          },
+        ]}
+      >
+        {usage.remaining} / {usage.limit}回
+      </Text>
       {warningMessage && <Text style={styles.warning}>{warningMessage}</Text>}
       {isFree && (isExhausted || isWarning) && (
         <TouchableOpacity

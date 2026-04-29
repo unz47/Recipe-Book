@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CookingPot, BookOpen, ShoppingCart, Home, LogIn, LogOut } from "lucide-react";
+import { CookingPot, BookOpen, ShoppingCart, Home, LogIn, LogOut, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -94,6 +94,12 @@ export function Header() {
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-medium">{user.email}</p>
                 </div>
+                <Link href="/pricing">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    料金プラン
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuItem onClick={signOut} className="text-app-danger cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   ログアウト

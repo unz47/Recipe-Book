@@ -21,11 +21,11 @@ const PLAN_FEATURES = {
     { text: `レシピ保存 ${PLANS.free.recipeStorageLimit}件まで`, included: true },
     { text: "買い物リスト", included: true },
     { text: "クラウド同期", included: false },
-    { text: "レシピ抽出 無制限", included: false },
+    { text: `月${PLANS.premium.monthlyExtractionLimit}回のレシピ抽出`, included: false },
     { text: "レシピ保存 無制限", included: false },
   ],
   premium: [
-    { text: "レシピ抽出 無制限", included: true },
+    { text: `月${PLANS.premium.monthlyExtractionLimit}回のレシピ抽出`, included: true },
     { text: "レシピ保存 無制限", included: true },
     { text: "買い物リスト", included: true },
     { text: "クラウド同期", included: true },

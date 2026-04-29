@@ -10,6 +10,7 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 
+import Link from "next/link";
 import type { Recipe } from "@/domain/entities/recipe";
 import { Badge } from "@/components/ui/badge";
 import { useRecipes } from "@/hooks/use-recipes";
@@ -133,34 +134,41 @@ export default function HomePage() {
         {/* Storage Limit Reached */}
         {storageLimitReached && (
           <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            レシピの保存上限（{PLANS.free.recipeStorageLimit}件）に達しました。
-            Premium にアップグレードすると無制限に保存できます。
+            レシピの保存上限（{PLANS.free.recipeStorageLimit}件）に達しました。{" "}
+            <Link href="/pricing" className="font-semibold underline">
+              Premium にアップグレード
+            </Link>
+            すると無制限に保存できます。
+          </div>
+        )}
+
+        {/* Extraction Limit Reached */}
+        {extractState.isLimitReached && (
+          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            今月の抽出上限に達しました。{" "}
+            <Link href="/pricing" className="font-semibold underline">
+              Premium にアップグレード
+            </Link>
+            すると月{PLANS.premium.monthlyExtractionLimit}回まで利用できます。
           </div>
         )}
 
         {/* Usage Info */}
         {isAuthenticated && usage && (
           <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-app-surface px-4 py-1.5 text-sm text-app-text-secondary">
-            {Number.isFinite(usage.limit) ? (
-              <span>
-                今月の残り回数:{" "}
-                <span
-                  className={
-                    usage.remaining <= 2
-                      ? "font-bold text-app-danger"
-                      : "font-bold text-app-primary"
-                  }
-                >
-                  {usage.remaining}
-                </span>{" "}
-                / {usage.limit}
-              </span>
-            ) : (
-              <span>
-                <span className="font-bold text-app-primary">Premium</span>{" "}
-                — レシピ抽出 無制限
-              </span>
-            )}
+            <span>
+              今月の残り回数:{" "}
+              <span
+                className={
+                  usage.remaining <= 2
+                    ? "font-bold text-app-danger"
+                    : "font-bold text-app-primary"
+                }
+              >
+                {usage.remaining}
+              </span>{" "}
+              / {usage.limit}
+            </span>
           </div>
         )}
       </section>

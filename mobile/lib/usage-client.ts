@@ -56,9 +56,7 @@ export async function getUserUsageClient() {
 
   const plan = (data.plan as PlanType) ?? "free";
   const limit = PLANS[plan].monthlyExtractionLimit;
-  const remaining = Number.isFinite(limit)
-    ? Math.max(0, limit - data.extraction_count)
-    : Infinity;
+  const remaining = Math.max(0, limit - data.extraction_count);
 
   return {
     remaining,
@@ -73,6 +71,5 @@ export async function getUserUsageClient() {
  */
 export async function checkUsageLimitClient(): Promise<boolean> {
   const usage = await getUserUsageClient();
-  if (!Number.isFinite(usage.limit)) return true; // Premium: 無制限
   return usage.used < usage.limit;
 }
